@@ -1,92 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Profile</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0; padding: 20px;
-      background: #f4f6f8;
-    }
-    nav {
-      background: #333;
-      color: white;
-      padding: 10px;
-    }
-    nav a {
-      color: white;
-      margin-right: 20px;
-      text-decoration: none;
-    }
-    .container {
-      max-width: 500px;
-      margin: 40px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-    }
-    label {
-      font-weight: bold;
-      margin-top: 15px;
-      display: block;
-    }
-    .profile-text {
-      margin: 8px 0 20px 0;
-      font-size: 16px;
-      white-space: pre-wrap;
-    }
-    input, textarea {
-      width: 100%;
-      margin-top: 8px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-      resize: vertical;
-      display: none;
-    }
-    button {
-      margin-top: 20px;
-      padding: 12px 20px;
-      background-color: #1e88e5;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button + button {
-      margin-left: 10px;
-      background-color: #777;
-    }
-  </style>
-  <script type="module" src="profile.js" defer></script>
-</head>
-<body>
-  <nav>
-    <a href="feed.html">Feed</a>
-    <a href="profile.html">Profile</a>
-    <a href="friends.html">Friends</a>
-    <a href="settings.html">Settings</a>
-    <a href="index.html">Logout</a>
-  </nav>
+<h2>My Profile</h2>
+<div id="profileView">
+  <p><b>Email:</b> <span id="emailDisplay"></span></p>
+  <p><b>Username:</b> <span id="usernameDisplay"></span></p>
+  <button id="editProfileBtn">Edit</button>
+</div>
 
-  <div class="container">
-    <h1>Your Profile</h1>
+<div id="profileEdit" style="display:none;">
+  <input id="usernameInput" placeholder="New Username" />
+  <button id="saveProfileBtn">Save</button>
+  <button onclick="location.reload()">Cancel</button>
+</div>
 
-    <label>Name</label>
-    <div id="nameText" class="profile-text"></div>
-    <input id="nameInput" type="text" />
+<script type="module">
+  import { auth, db } from './firebase.js';
+  import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
-    <label>Bio</label>
-    <div id="bioText" class="profile-text"></div>
-    <textarea id="bioInput" rows="4"></textarea>
+  auth.onAuthStateChanged(async user => {
+    if (!user) return location = 'index.html';
 
-    <button id="editBtn">Edit Profile</button>
-    <button id="saveBtn" style="display:none;">Save</button>
-    <button id="cancelBtn" style="display:none;">Cancel</button>
-  </div>
-</body>
-</html>
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const data = userDoc.data();
+    document.getElementById("emailDisplay").innerText = user.email;
+    document.getElementById("usernameDisplay").innerText = data.username;
+
+    document.getElementById("editProfileBtn").onclick = () => {
+      document.getElementById("profileView").style.display = "none";
+      document.getElementById("profileEdit").style.display = "block";
+      document.getElementById("usernameInput").value = data.username;
+    };
+
+    document.getElementById("saveProfileBtn").onclick = async () => {
+      await updateDoc(doc(db, "users", user.uid), {
+        username: document.getElementById("usernameInput").value
+      });
+      alert("Profile updated");
+      location.reload();
+    };
+  });
+</script>

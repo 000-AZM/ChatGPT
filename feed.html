@@ -73,15 +73,16 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyCGN7t5FjDeJ-ewm7S_9z0VJrRSggTaJ2Q",
+  authDomain: "coin-base-by-hector.firebaseapp.com",
+  databaseURL: "https://coin-base-by-hector-default-rtdb.firebaseio.com",
+  projectId: "coin-base-by-hector",
+  storageBucket: "coin-base-by-hector.firebasestorage.app",
+  messagingSenderId: "398789890422",
+  appId: "1:398789890422:web:ed6a928037b24be2e36a57",
+  measurementId: "G-SGJJM5K3G9"
+};
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);

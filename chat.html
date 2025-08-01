@@ -1,94 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Friend Chat</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0; padding: 20px;
-      background: #f4f6f8;
-      max-width: 600px;
-      margin-inline: auto;
-    }
-    nav {
-      background: #333;
-      color: white;
-      padding: 10px;
-      margin-bottom: 20px;
-    }
-    nav a {
-      color: white;
-      margin-right: 20px;
-      text-decoration: none;
-    }
-    #chatWindow {
-      border: 1px solid #ccc;
-      height: 400px;
-      overflow-y: scroll;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-    .message {
-      margin-bottom: 10px;
-      padding: 8px;
-      border-radius: 8px;
-      max-width: 70%;
-    }
-    .myMessage {
-      background-color: #1e88e5;
-      color: white;
-      margin-left: auto;
-    }
-    .friendMessage {
-      background-color: #eee;
-      color: black;
-      margin-right: auto;
-    }
-    #messageInput {
-      width: calc(100% - 100px);
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    #sendBtn {
-      width: 80px;
-      padding: 10px;
-      background-color: #1e88e5;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 10px;
-    }
-  </style>
-  <script type="module" src="chat.js" defer></script>
-</head>
-<body>
-  <nav>
-    <a href="feed.html">Feed</a>
-    <a href="profile.html">Profile</a>
-    <a href="friends.html">Friends</a>
-    <a href="chat.html">Chat</a>
-    <a href="settings.html">Settings</a>
-    <a href="index.html">Logout</a>
-  </nav>
+<h2>Chat</h2>
+<input id="friendEmailInput" placeholder="Friend's Email" />
+<button id="startChatBtn">Start Chat</button>
+<div id="chatWindow" style="border:1px solid #ccc; height:200px; overflow:auto; margin-top:10px;"></div>
+<form id="messageForm" style="display:none;">
+  <input id="messageInput" placeholder="Type a message" />
+  <button type="button" id="sendBtn">Send</button>
+</form>
 
-  <h1>Friend Chat</h1>
+<script type="module">
+  import { auth, db } from './firebase.js';
+  import { collection, query, where, getDocs, doc, addDoc, onSnapshot, orderBy } from 'firebase/firestore';
 
-  <label for="friendEmailInput">Friend's Email:</label>
-  <input id="friendEmailInput" type="email" placeholder="Enter friend's email" />
-  <button id="startChatBtn">Start Chat</button>
+  let chatId = "", currentUser;
 
-  <div id="chatWindow" style="display:none;"></div>
+  auth.onAuthStateChanged(user => {
+    if (!user) return location = "index.html";
+    currentUser = user;
+  });
 
-  <div id="messageForm" style="display:none;">
-    <input id="messageInput" type="text" placeholder="Type a message..." />
-    <button id="sendBtn">Send</button>
-  </div>
-</body>
-</html>
+  function generateChatId(uid1, uid2) {
+    return [uid1, uid2].sort().join("_");
+  }
+
+  document.getElementById("startChatBtn").onclick = async () => {
+    const email = document.getElementById("friendEmailInput").value.trim();
+    if (!email) return alert("Enter friend's email");
+
+    const usersSnap = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+    if (usersSnap.empty) return alert("Friend not found");
+
+    const friendUid = usersSnap.docs[0].id;
+    chatId = generateChatId(currentUser.uid, friendUid);
+
+    const chatRef = collection(db, "chats", chatId, "messages");
+    const q = query(chatRef, orderBy("time"));
+
+    document.getElementById("chatWindow").innerHTML = "";
+    document.getElementById("messageForm").style.display = "flex";
+
+    onSnapshot(q, snap => {
+      const win = document.getElementById("chatWindow");
+      win.innerHTML = "";
+      snap.forEach(docSnap => {
+        const msg = docSnap.data();
+        const div = document.createElement("div");
+        div.className = msg.sender === currentUser.email ? "myMessage" : "friendMessage";
+        div.textContent = msg.text;
+        win.appendChild(div);
+      });
+      win.scrollTop = win.scrollHeight;
+    });
+  };
+
+  document.getElementById("sendBtn").onclick = async () => {
+    const text = document.getElementById("messageInput").value.trim();
+    if (!text || !chatId) return;
+    await addDoc(collection(db, "chats", chatId, "messages"), {
+      sender: currentUser.email,
+      text,
+      time: new Date()
+    });
+    document.getElementById("messageInput").value = "";
+  };
+</script>

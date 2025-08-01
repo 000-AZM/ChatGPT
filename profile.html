@@ -1,29 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Profile</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0; padding: 20px;
+      background: #f4f6f8;
+    }
+    nav {
+      background: #333;
+      color: white;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      margin-right: 20px;
+      text-decoration: none;
+    }
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    input, textarea {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      resize: vertical;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      background-color: #1e88e5;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
   <script type="module" src="profile.js" defer></script>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- NavBar Start -->
-<nav style="background-color: #333; color: white; padding: 10px;">
-  <a href="index.html" style="color: white; margin-right: 20px;">Home</a>
-  <a href="profile.html" style="color: white; margin-right: 20px;">Profile</a>
-  <a href="friends.html" style="color: white; margin-right: 20px;">Friends</a>
-  <a href="login.html" style="color: white; margin-right: 20px;">Login</a>
-</nav>
-<!-- NavBar End -->
+  <nav>
+    <a href="feed.html">Feed</a>
+    <a href="profile.html">Profile</a>
+    <a href="friends.html">Friends</a>
+    <a href="settings.html">Settings</a>
+    <a href="index.html">Logout</a>
+  </nav>
 
   <div class="container">
     <h1>Your Profile</h1>
-    <input type="text" id="displayName" placeholder="Display Name" />
-    <textarea id="bio" placeholder="Your bio here..."></textarea>
-    <button id="saveProfileBtn">Save Profile</button>
-    <div class="mt-2">
-      <a href="feed.html">← Back to Feed</a>
-    </div>
+    <input id="name" type="text" placeholder="Your display name" />
+    <textarea id="bio" rows="4" placeholder="Tell something about yourself..."></textarea>
+    <button id="saveBtn">Save Profile</button>
   </div>
 </body>
 </html>

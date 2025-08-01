@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Settings</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0; padding: 20px;
+      background: #f4f6f8;
+    }
+    nav {
+      background: #333;
+      color: white;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      margin-right: 20px;
+      text-decoration: none;
+    }
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      background-color: #1e88e5;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+  <script type="module" src="settings.js" defer></script>
+</head>
+<body>
+  <nav>
+    <a href="feed.html">Feed</a>
+    <a href="profile.html">Profile</a>
+    <a href="friends.html">Friends</a>
+    <a href="settings.html">Settings</a>
+    <a href="index.html">Logout</a>
+  </nav>
+
+  <div class="container">
+    <h1>Settings</h1>
+    <input id="newEmail" type="email" placeholder="New Email" />
+    <input id="newPassword" type="password" placeholder="New Password" />
+    <button id="updateEmailBtn">Update Email</button>
+    <button id="updatePasswordBtn">Update Password</button>
+    <button id="logoutBtn" style="background-color:#e53935; margin-top: 20px;">Logout</button>
+  </div>
+</body>
+</html>

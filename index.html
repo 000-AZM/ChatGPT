@@ -1,18 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login | Social App</title>
-  <script type="module" src="script.js" defer></script>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xinn Social</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+  <style>
+    body {
+      background: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .navbar {
+      background-color: #343a40;
+    }
+    .navbar-brand, .nav-link, .nav-link:hover {
+      color: #fff;
+    }
+    .container {
+      margin-top: 80px;
+    }
+    .card {
+      margin-bottom: 1rem;
+    }
+    .chat-box {
+      height: 300px;
+      overflow-y: scroll;
+      background: #e9ecef;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .notification {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="#">Xinn Social</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#posts">Posts</a></li>
+          <li class="nav-item"><a class="nav-link" href="#chat">Chat</a></li>
+          <li class="nav-item"><a class="nav-link" href="#notifications">Notifications</a></li>
+          <li class="nav-item"><a class="nav-link" href="#profile">Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="#settings">Settings</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
   <div class="container">
-    <h2>Welcome</h2>
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password" />
-    <button id="loginBtn">Login</button>
-    <button id="registerBtn" class="mt-2">Register</button>
+    <!-- Notifications -->
+    <div id="notifications">
+      <h4>🔔 Notifications</h4>
+      <div id="notification-list"></div>
+    </div>
+
+    <!-- Posts -->
+    <div id="posts">
+      <h4>📝 Posts</h4>
+      <div id="post-list"></div>
+      <textarea id="new-post" class="form-control mt-2" placeholder="What's on your mind?"></textarea>
+      <button class="btn btn-primary mt-2" onclick="createPost()">Post</button>
+    </div>
+
+    <!-- Real-time Chat -->
+    <div id="chat">
+      <h4>💬 Chat</h4>
+      <div class="chat-box" id="chat-box"></div>
+      <input id="chat-input" type="text" class="form-control mt-2" placeholder="Type message...">
+      <button class="btn btn-success mt-2" onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Profile -->
+    <div id="profile">
+      <h4>👤 Profile</h4>
+      <div id="profile-view"></div>
+      <button class="btn btn-outline-secondary" onclick="toggleEditProfile()">Edit Profile</button>
+      <div id="profile-edit" style="display:none">
+        <input id="profile-name" class="form-control my-2" placeholder="Name" />
+        <input id="profile-bio" class="form-control my-2" placeholder="Bio" />
+        <button class="btn btn-primary" onclick="saveProfile()">Save</button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings">
+      <h4>⚙️ Settings</h4>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
   </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script>
+   const firebaseConfig = {
+  apiKey: "AIzaSyCGN7t5FjDeJ-ewm7S_9z0VJrRSggTaJ2Q",
+  authDomain: "coin-base-by-hector.firebaseapp.com",
+  databaseURL: "https://coin-base-by-hector-default-rtdb.firebaseio.com",
+  projectId: "coin-base-by-hector",
+  storageBucket: "coin-base-by-hector.firebasestorage.app",
+  messagingSenderId: "398789890422",
+  appId: "1:398789890422:web:ed6a928037b24be2e36a57",
+  measurementId: "G-SGJJM5K3G9"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let currentUser = null;
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        loadPosts();
+        loadProfile();
+        listenToChat();
+        listenToNotifications();
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    function createPost() {
+      const text = document.getElementById('new-post').value;
+      db.collection("posts").add({
+        user: currentUser.email,
+        text,
+        time: new Date()
+      });
+      document.getElementById('new-post').value = "";
+    }
+
+    function loadPosts() {
+      db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
+        const postList = document.getElementById('post-list');
+        postList.innerHTML = "";
+        snapshot.forEach(doc => {
+          const post = doc.data();
+          postList.innerHTML += `<div class='card'><div class='card-body'><strong>${post.user}</strong><p>${post.text}</p><small>${post.time.toDate().toLocaleString()}</small></div></div>`;
+        });
+      });
+    }
+
+    function toggleEditProfile() {
+      document.getElementById('profile-edit').style.display = 'block';
+    }
+
+    function loadProfile() {
+      db.collection("profiles").doc(currentUser.uid).get().then(doc => {
+        const data = doc.data() || {};
+        document.getElementById('profile-view').innerHTML = `<strong>Name:</strong> ${data.name || "-"}<br/><strong>Bio:</strong> ${data.bio || "-"}`;
+        document.getElementById('profile-name').value = data.name || "";
+        document.getElementById('profile-bio').value = data.bio || "";
+      });
+    }
+
+    function saveProfile() {
+      const name = document.getElementById('profile-name').value;
+      const bio = document.getElementById('profile-bio').value;
+      db.collection("profiles").doc(currentUser.uid).set({ name, bio });
+      document.getElementById('profile-edit').style.display = 'none';
+      loadProfile();
+    }
+
+    function sendMessage() {
+      const msg = document.getElementById('chat-input').value;
+      db.collection("chats").add({
+        user: currentUser.email,
+        message: msg,
+        time: new Date()
+      });
+      document.getElementById('chat-input').value = "";
+    }
+
+    function listenToChat() {
+      db.collection("chats").orderBy("time").onSnapshot(snapshot => {
+        const box = document.getElementById('chat-box');
+        box.innerHTML = "";
+        snapshot.forEach(doc => {
+          const chat = doc.data();
+          box.innerHTML += `<div><strong>${chat.user}</strong>: ${chat.message}</div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+      });
+    }
+
+    function listenToNotifications() {
+      db.collection("notifications").where("to", "==", currentUser.email).orderBy("time", "desc").onSnapshot(snapshot => {
+        const list = document.getElementById('notification-list');
+        list.innerHTML = "";
+        snapshot.forEach(doc => {
+          const n = doc.data();
+          list.innerHTML += `<div class='notification'>${n.text} <small>${n.time.toDate().toLocaleString()}</small></div>`;
+        });
+      });
+    }
+
+    function logout() {
+      auth.signOut();
+    }
+  </script>
 </body>
 </html>

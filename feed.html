@@ -1,46 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Feed</title>
-  <script type="module" src="script.js" defer></script>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Social Feed</title>
+  <style>
+    /* (Add your post CSS styles here - same as before) */
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #f1f1f1;
+    }
+    nav {
+      background: #333;
+      color: white;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      margin-right: 20px;
+      text-decoration: none;
+    }
+    .post {
+      background: white;
+      max-width: 500px;
+      margin: 20px auto;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      background: #ccc;
+    }
+    .post-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .post-info .name {
+      font-weight: bold;
+    }
+    .post-info .meta {
+      font-size: 12px;
+      color: #777;
+    }
+    .post-content {
+      margin: 10px 0;
+      white-space: pre-wrap;
+    }
+    .post-actions {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+    .post-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #333;
+    }
+  </style>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const container = document.getElementById("postsContainer");
+
+    // Listen to posts collection in real-time
+    const q = query(collection(db, "posts"), orderBy("time", "desc"));
+
+    onSnapshot(q, (snapshot) => {
+      container.innerHTML = ""; // Clear posts
+      snapshot.forEach(doc => {
+        const data = doc.data();
+
+        // Format timestamp nicely
+        const date = data.time?.toDate ? data.time.toDate() : new Date();
+        const dateStr = date.toLocaleString();
+
+        const postDiv = document.createElement("div");
+        postDiv.className = "post";
+        postDiv.innerHTML = `
+          <div class="post-header">
+            <img src="${data.avatar || 'https://via.placeholder.com/40'}" class="avatar" alt="avatar" />
+            <div class="post-info">
+              <div class="name">${data.user || "Unknown"}</div>
+              <div class="meta">${dateStr} · ${data.visibility || "Public"}</div>
+            </div>
+          </div>
+          <div class="post-content">${data.text || ""}</div>
+          <div class="post-actions">
+            <button>❤️ Like</button>
+            <button>💬 Comment</button>
+            <button>🔄 Share</button>
+          </div>
+        `;
+        container.appendChild(postDiv);
+      });
+    });
+  </script>
 </head>
 <body>
-<!-- NavBar Start -->
-<nav style="background-color: #333; color: white; padding: 10px;">
-  <a href="index.html" style="color: white; margin-right: 20px;">Home</a>
-  <a href="profile.html" style="color: white; margin-right: 20px;">Profile</a>
-  <a href="friends.html" style="color: white; margin-right: 20px;">Friends</a>
-  <a href="login.html" style="color: white; margin-right: 20px;">Login</a>
-</nav>
-<!-- NavBar End -->
-<div class="post">
-  <div class="post-header">
-    <img src="avatar.jpg" alt="avatar" class="avatar" />
-    <div>
-      <div class="username">Ko Aung</div>
-      <div class="timestamp">Posted 2h ago • 🌐 Public</div>
-    </div>
-  </div>
-  <div class="post-content">
-    Life is beautiful when you're coding JavaScript 💻✨
-  </div>
-  <div class="post-actions">
-    <button>❤️ Like</button>
-    <button>💬 Comment</button>
-    <button>🔁 Share</button>
-    <button>✏️ Edit</button>
-    <button>🗑 Delete</button>
-  </div>
-</div>
+  <nav>
+    <a href="feed.html">Feed</a>
+    <a href="profile.html">Profile</a>
+    <a href="friends.html">Friends</a>
+    <a href="index.html">Logout</a>
+  </nav>
 
-
-  <div class="container">
-    <h1>Social Feed</h1>
-    <textarea id="postInput" placeholder="What's on your mind?"></textarea>
-    <button id="postBtn">Post</button>
-    <div id="posts"></div>
-  </div>
+  <div id="postsContainer"></div>
 </body>
 </html>

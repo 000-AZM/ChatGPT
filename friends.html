@@ -1,77 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Friends</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 0; padding: 20px;
-      background: #f4f6f8;
-    }
-    nav {
-      background: #333;
-      color: white;
-      padding: 10px;
-    }
-    nav a {
-      color: white;
-      margin-right: 20px;
-      text-decoration: none;
-    }
-    .container {
-      max-width: 500px;
-      margin: 40px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-    }
-    input {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      margin-top: 10px;
-      width: 100%;
-      padding: 12px;
-      background-color: #1e88e5;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    ul {
-      margin-top: 20px;
-      list-style-type: none;
-      padding-left: 0;
-    }
-    li {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-    }
-  </style>
-  <script type="module" src="friends.js" defer></script>
-</head>
-<body>
-  <nav>
-    <a href="feed.html">Feed</a>
-    <a href="profile.html">Profile</a>
-    <a href="friends.html">Friends</a>
-    <a href="settings.html">Settings</a>
-    <a href="index.html">Logout</a>
-  </nav>
+<h2>Friends</h2>
+<input id="friendEmail" placeholder="Friend Email" />
+<button id="addFriendBtn">Add Friend</button>
+<ul id="friendList"></ul>
 
-  <div class="container">
-    <h1>Friends</h1>
-    <input id="friendEmail" type="email" placeholder="Friend's email" />
-    <button id="addFriendBtn">Add Friend</button>
-    <ul id="friendList"></ul>
-  </div>
-</body>
-</html>
+<script type="module">
+  import { auth, db } from './firebase.js';
+  import { collection, doc, getDoc, getDocs, setDoc, query, where } from 'firebase/firestore';
+
+  const list = document.getElementById("friendList");
+
+  auth.onAuthStateChanged(async user => {
+    if (!user) return location = "index.html";
+
+    const friendsRef = collection(db, "users", user.uid, "friends");
+    const snap = await getDocs(friendsRef);
+
+    snap.forEach(async friend => {
+      const friendData = await getDoc(doc(db, "users", friend.id));
+      const li = document.createElement("li");
+      li.innerText = friendData.data().username;
+      list.appendChild(li);
+    });
+
+    document.getElementById("addFriendBtn").onclick = async () => {
+      const email = document.getElementById("friendEmail").value.trim();
+      if (!email) return alert("Enter email");
+
+      const userSnap = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+      if (userSnap.empty) return alert("User not found");
+
+      const friendId = userSnap.docs[0].id;
+      await setDoc(doc(db, "users", user.uid, "friends", friendId), {});
+      alert("Friend added!");
+      location.reload();
+    };
+  });
+</script>

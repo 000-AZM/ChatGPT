@@ -1,12 +1,10 @@
 import { auth, db } from './firebase.js';
-import {
-  doc, getDoc, setDoc
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
-const nameInput = document.getElementById('displayName');
+const nameInput = document.getElementById('name');
 const bioInput = document.getElementById('bio');
-const saveBtn = document.getElementById('saveProfileBtn');
+const saveBtn = document.getElementById('saveBtn');
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
@@ -15,20 +13,21 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  const docRef = doc(db, "users", user.uid);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    const data = docSnap.data();
+  const userDoc = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userDoc);
+
+  if (userSnap.exists()) {
+    const data = userSnap.data();
     nameInput.value = data.name || "";
     bioInput.value = data.bio || "";
   }
 
   saveBtn.onclick = async () => {
-    await setDoc(docRef, {
+    await setDoc(userDoc, {
       name: nameInput.value,
       bio: bioInput.value,
       email: user.email
-    });
-    alert("Profile updated!");
+    }, { merge: true });
+    alert("Profile saved!");
   };
 });
